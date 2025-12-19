@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <title>lab11 - Poker Flip</title>
+    <style>
+        body {
+            font-size: 17px;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #ecf2f8;
+            color: #5b757d;
+        }
+
+        header {
+            background-color: #5b757d;
+            border-radius: 15px;
+            color: #eff9fb;
+            padding: 20px;
+            font-size: larger;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .btn {
+            padding: 10px 25px;
+            cursor: pointer;
+            color: #5b757d;
+            border: 2px solid #5b757d;
+            background-color: #ecf2f8;
+            border-radius: 10px;
+            font-weight: 800;
+            margin: 20px auto;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            border: 2px solid #5b757d;
+            background-color: #5b757d;
+            color: white;
+            font-weight: 500;
+        }
+
+        .container {
+            width: 90%;
+            margin: auto;
+            padding: 10px;
+            text-align: center;
+        }
+
+        #divCards {
+            margin: 20px auto;
+            width: 95%;
+            /* 容器寬度隨螢幕縮放 */
+            max-width: 1000px;
+            min-height: 400px;
+            border-radius: 15px;
+            background-color: #5b757d;
+            padding: 20px;
+            box-sizing: border-box;
+
+            display: grid;
+            gap: 15px;
+            /* 縮小間距，避免手機空間不夠 */
+            justify-content: center;
+
+            /* 預設（手機）：2 欄 (12張 = 6列) */
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        /* 螢幕寬度超過 500px（平板/寬手機）：改為 3 欄 (12張 = 4列) */
+        @media (min-width: 500px) {
+            #divCards {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* 螢幕寬度超過 800px（電腦）：改為 4 欄 (12張 = 3列) */
+        @media (min-width: 800px) {
+            #divCards {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* 螢幕寬度超過 1000px（大螢幕）：改為 6 欄 (12張 = 2列) */
+        @media (min-width: 1000px) {
+            #divCards {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        /* --- 翻牌動畫 CSS --- */
+        .card-container {
+            width: 100%;
+            /* 寬度跟隨 grid 欄位自動伸縮 */
+            max-width: 130px;
+            /* 限制最大寬度，避免在大螢幕變得太大 */
+            margin: 0 auto;
+            aspect-ratio: 5 / 7;
+            /* 核心：不管寬度多少，高度永遠維持 5:7 比例 */
+            perspective: 1000px;
+
+            opacity: 0;
+            transform: translate(-100px, -20px) scale(0.8) rotate(-10deg);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* --- 當發牌完成後，回到原位 --- */
+        .card-container.deal-in {
+            opacity: 1;
+            transform: translate(0, 0) scale(1) rotate(0deg);
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            text-align: center;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            /*  0.4s -> 翻轉時間
+                cubic-bezier -> 貝茲曲線/速度曲線 
+                cubic-bezier(0.4, 0, 0.2, 1) "Ease-in-out"
+                --> 0.4, 0: 控制動畫的開始; 0.2, 1: 控制動畫的結束
+
+
+            */
+            /* 讓子元素維持 3D 空間 */
+            transform-style: preserve-3d;
+        }
+
+        /* 當加上 flipped 類別時，旋轉 180 度 */
+        .card-inner.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front,
+        .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            /* 翻轉到背面時隱藏 */
+            border-radius: 8px;
+            background-color: transparent;
+        }
+
+        /* 背面樣式 (統一圖案) */
+        .card-back {
+            background-color: #3b244a;
+
+            /* 背景裝飾：金色格紋*/
+            background-image:
+                linear-gradient(135deg, rgba(255, 215, 0, 0.05) 25%, transparent 25%),
+                linear-gradient(225deg, rgba(255, 217, 0, 0.2) 25%, transparent 25%),
+                radial-gradient(circle, rgba(255, 215, 0, 0.2) 10%, transparent 11%);
+            background-size: 20px 20px;
+
+            /* 撲克牌經典白邊 */
+            border: 5px solid #ffffff;
+            box-sizing: border-box;
+        }
+
+        /* 正面樣式 */
+        .card-front {
+            background-color: transparent;
+            transform: rotateY(180deg);
+            /* 預先轉 180 度隱藏 */
+        }
+
+        .card-front img {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            object-fit: contain;
+        }
+
+        #btn_hide_all {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <header>Exercise_Poker_Memory Game</header>
+
+    <div class="container">
+        <div id="divCards"></div>
+        <button id="btn_draw" class="btn">重新發牌</button>
+
+    </div>
+
+
+    <script>
+        const API_BASE = 'https://deckofcardsapi.com/api/deck';
+        const divCards = document.querySelector('#divCards');
+        const btnFlipAll = document.querySelector('#btn_flip_all');
+        const btnHideAll = document.querySelector('#btn_hide_all');
+
+        let firstCard = null;
+        let secondCard = null;
+        let lockBoard = false; // 用來防止在比對時玩家亂點
+
+        async function getNewDeck() {
+            const response = await fetch(`${API_BASE}/new/shuffle/?deck_count=1`);
+            const data = await response.json();
+            return data.deck_id;
+        }
+
+        async function drawCard(deckId, count) {
+            const response = await fetch(`${API_BASE}/${deckId}/draw/?count=${count}`);
+            const data = await response.json();
+            return data.cards;
+        }
+
+        const suit_map = {
+            'SPADES': '黑桃',
+            'HEARTS': '紅心',
+            'DIAMONDS': '方塊',
+            'CLUBS': '梅花'
+        };
+
+        const value_map = {
+            'JACK': 11,
+            'QUEEN': 12,
+            'KING': 13,
+            'ACE': 1
+        };
+
+        function transformCardData(card) {
+            // 如果 VALUE_MAP 找不到，就直接轉數字
+            const weight = value_map[card.value] || parseInt(card.value);
+
+            return {
+                code: card.code,
+                image: card.image,
+                suit: suit_map[card.suit] || '未知',
+                weight: weight,
+                display: `${card.code} → ${suit_map[card.suit]} ${weight}`
+            };
+        }
+
+        async function shuffleAndDraw() {
+            // 清空舊卡片
+            divCards.innerHTML = '';
+            firstCard = null;
+            secondCard = null;
+            lockBoard = false;
+
+            let deckId = await getNewDeck();
+            const rawCards = await drawCard(deckId, 6);
+
+            // 將 6 張牌複製成 12 張 (成對)
+            let gameCards = [...rawCards, ...rawCards];
+
+            // 隨機洗牌 (不洗牌的話，一對會排在一起)
+            gameCards.sort(() => Math.random() - 0.5);
+
+            gameCards.forEach((rawCard, index) => {
+                const cardData = transformCardData(rawCard);
+                const cardElement = createCardElement(cardData);
+                divCards.appendChild(cardElement);
+
+                // --- 發牌動畫 ---
+                setTimeout(() => {
+                    cardElement.classList.add('deal-in');
+                }, index * 100); // 每 0.15 秒飛出一張
+
+            });
+        }
+
+
+        function createCardElement(cardData) {
+            const container = document.createElement('div');
+            container.className = 'card-container';
+            container.dataset.code = cardData.code; // 用 code 來比對是否為同一張牌
+
+            container.dataset.weight = cardData.weight;
+            container.dataset.suit = cardData.suit;
+
+            container.innerHTML = `
+<div class="card-inner">
+<div class="card-back"></div>
+<div class="card-front">
+<img src="${cardData.image}" alt="${cardData.code}">
+</div>
+</div>
+`;
+
+            const inner = container.querySelector('.card-inner');
+            inner.onclick = () => {
+                // 如果遊戲板被鎖定、點到已經翻開的牌、或是點到同一張，就直接回傳
+                if (lockBoard || inner.classList.contains('flipped')) return;
+
+                inner.classList.toggle('flipped');
+
+                if (!firstCard) {
+                    // 翻開第一張牌
+                    firstCard = inner;
+                } else {
+                    // 翻開第二張牌
+                    secondCard = inner;
+                    checkMatch();
+                }
+            }
+            return container;
+        }
+
+        function checkMatch() {
+
+            const isMatch = firstCard.parentElement.dataset.code === secondCard.parentElement.dataset.code;
+
+            if (isMatch) {
+                resetCards(); // 配對成功: 清空暫存，保持翻開
+
+                // 檢查是否全部完成
+                const flippedCount = document.querySelectorAll('.card-inner.flipped').length;
+                const totalCards = document.querySelectorAll('.card-inner').length;
+
+                if (flippedCount === totalCards) {
+                    // 呼叫灑花特效！
+                    runSuccessEffect();
+                }
+            } else {
+                // 配對失敗: 鎖定遊戲板，在 1 秒後翻回去
+                lockBoard = true;
+                setTimeout(() => {
+                    firstCard.classList.remove('flipped');
+                    secondCard.classList.remove('flipped');
+                    resetCards();
+                }, 1000);
+            }
+        }
+
+        function resetCards() {
+            firstCard = null;
+            secondCard = null;
+            lockBoard = false;
+        }
+
+        // 翻開所有卡牌
+        function flipAllCards() {
+            const allCards = document.querySelectorAll('.card-inner');
+            allCards.forEach((card, index) => {
+                if (!card.classList.contains('flipped')) {
+                    setTimeout(() => {
+                        card.classList.add('flipped');
+                        console.log(card.dataset.info);
+                        // 檢查是否是最後一張，是的話更新按鈕狀態
+                        if (index === allCards.length - 1) checkGameState();
+                    }, index * 300);
+                }
+            });
+
+        }
+
+        // 蓋起所有卡牌
+        function hideAllCards() {
+            const allCards = document.querySelectorAll('.card-inner');
+            allCards.forEach((card, index) => {
+                if (card.classList.contains('flipped')) {
+                    setTimeout(() => {
+                        card.classList.remove('flipped');
+                        if (index === allCards.length - 1) checkGameState();
+                    }, index * 300);
+                }
+            });
+
+        }
+
+        // 封裝一個漂亮的灑花動畫
+        function runSuccessEffect() {
+            // 基本灑花
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+
+            // 額外加碼：從左右兩邊噴射
+            const duration = 3 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            const interval = setInterval(function () {
+                const timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+
+                const particleCount = 50 * (timeLeft / duration);
+                confetti({ ...defaults, particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } });
+            }, 250);
+
+
+        }
+        // 綁定點擊事件
+        document.querySelector('#btn_draw').onclick = shuffleAndDraw;
+
+        // 初始執行一次
+        shuffleAndDraw();
+
+    </script>
+</body>
+
+</html>
