@@ -77,35 +77,29 @@
         /* 螢幕寬度超過 500px（平板/寬手機）：改為 4 欄 (12張 = 3列) */
         @media (min-width: 500px) {
             #divCards {
-        /* 強制固定為 4 欄 */
-        grid-template-columns: repeat(4, 1fr); 
-        gap: 5px;       /* 縮小間距，騰出空間 */
-        padding: 8px;   /* 縮小內邊距 */
-    }
-
-    .card-container {
-        /* 縮小卡片寬高：寬 75px，高根據比例約 105px */
-        width: 75px;
-        height: 105px;
-    }
-
-    /* 調整字體大小，避免標題或按鈕在手機上佔位太多 */
-    header {
-        padding: 10px;
-        font-size: 18px;
-    }
-
-    .btn {
-        margin: 10px auto;
-        padding: 8px 15px;
-    }
-    }
-
-    .card-container {
-        /* 稍微縮小手機版的卡片尺寸，避免擠在一起 */
-        width: 90px;
-        height: 126px;
-    }
+                /* 強制固定為 4 欄 */
+                grid-template-columns: repeat(4, 1fr); 
+                gap: 5px;       /* 縮小間距，騰出空間 */
+                padding: 8px;   /* 縮小內邊距 */
+            }
+        
+            .card-container {
+                /* 縮小卡片寬高：寬 75px，高根據比例約 105px */
+                width: 75px;
+                height: 105px;
+            }
+        
+            /* 調整字體大小，避免標題或按鈕在手機上佔位太多 */
+            header {
+                padding: 10px;
+                font-size: 18px;
+            }
+        
+            .btn {
+                margin: 10px auto;
+                padding: 8px 15px;
+            }
+            }
         }
 
         /* 螢幕寬度超過 800px（電腦）：改為 4 欄 (12張 = 3列) */
@@ -436,4 +430,5 @@
 
 
 </html>
+
 
