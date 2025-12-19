@@ -77,8 +77,17 @@
         /* 螢幕寬度超過 500px（平板/寬手機）：改為 3 欄 (12張 = 4列) */
         @media (min-width: 500px) {
             #divCards {
-                grid-template-columns: repeat(3, 1fr);
-            }
+        /* 在手機上改為 3 欄，這樣 12 張牌就會排成 4 列，看起來比較均勻 */
+        grid-template-columns: repeat(3, 1fr); 
+        gap: 8px;
+        padding: 10px;
+    }
+
+    .card-container {
+        /* 稍微縮小手機版的卡片尺寸，避免擠在一起 */
+        width: 90px;
+        height: 126px;
+    }
         }
 
         /* 螢幕寬度超過 800px（電腦）：改為 4 欄 (12張 = 3列) */
@@ -406,5 +415,6 @@
 
     </script>
 </body>
+
 
 </html>
