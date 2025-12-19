@@ -181,7 +181,7 @@
         }
 
         /* 螢幕寬度超過 500px（平板/寬手機）：改為 4 欄 (12張 = 3列) */
-        @media (min-width: 500px) {
+        @media (max-width: 500px) {
             #divCards {
                 /* 強制固定為 4 欄 */
                 grid-template-columns: repeat(4, 1fr); 
@@ -432,6 +432,7 @@
 
 
 </html>
+
 
 
 
